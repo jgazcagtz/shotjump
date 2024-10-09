@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShotJump 🚀</title>
+    <!-- Google Fonts: Bangers for a Fun and Playful Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Basic Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Bangers', cursive;
+            background: linear-gradient(to top, #1e3c72, #2a5298);
+            position: relative;
+        }
+
+        /* Start Screen, Game Over Screen, Continue Modal */
+        #startScreen, #gameOverScreen, #continueModal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 60, 114, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            color: #fff;
+            animation: fadeIn 1s ease-in-out;
+        }
+        #startScreen h1, #gameOverScreen h1, #continueModal h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        #gameOverScreen p {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        #startButton, #restartButton, #continueButton, #restartButton2 {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            background-color: #ff4757;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-family: 'Bangers', cursive;
+            margin: 10px;
+        }
+        #startButton:hover, #restartButton:hover, #continueButton:hover, #restartButton2:hover {
+            background-color: #e84118;
+        }
+        #startButton:active, #restartButton:active, #continueButton:active, #restartButton2:active {
+            transform: scale(0.95);
+        }
+
+        /* Player Selection Modal */
+        #playerSelectModal {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 25;
+        }
+        #playerSelectModal h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .playerOption {
+            font-size: 3em;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .playerOption:hover {
+            transform: scale(1.2);
+        }
+
+        /* Game Canvas */
+        #gameCanvas {
+            display: block;
+            background-color: transparent;
+        }
+
+        /* In-Game HUD */
+        #scoreBoard, #powerUpBoard, #levelBoard, #livesBoard {
+            position: absolute;
+            top: 20px;
+            font-size: 1.5em;
+            color: #fff;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 10;
+        }
+        #scoreBoard {
+            left: 20px;
+        }
+        #powerUpBoard {
+            right: 20px;
+        }
+        #levelBoard {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #livesBoard {
+            top: 60px;
+            left: 20px;
+        }
+
+        /* Pause, Resume, and Input Mode Toggle Controls */
+        #pauseResumeInputControls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 15;
+        }
+        .pauseButton, .resumeButton, .inputToggleButton {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-family: 'Bangers', cursive;
+            color: #333;
+        }
+        .pauseButton:hover, .resumeButton:hover, .inputToggleButton:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+        .pauseButton:active, .resumeButton:active, .inputToggleButton:active {
+            transform: scale(0.9);
+            background-color: rgba(255, 255, 255, 1);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            z-index: 10;
+        }
+        .button {
+            font-size: 2em;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s, background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-family: 'Bangers', cursive;
+            color: #333;
+        }
+        .button:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+        .button:active {
+            transform: scale(0.9);
+            background-color: rgba(255, 255, 255, 1);
+        }
+
+        /* Directional Pad */
+        .dpad {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            display: grid;
+            grid-template-areas:
+                "empty up empty"
+                "left empty right"
+                "empty down empty";
+            gap: 10px;
+            z-index: 10;
+        }
+        .dpadButton {
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-family: 'Bangers', cursive;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .dpadButton:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+        .dpadButton:active {
+            transform: scale(0.9);
+            background-color: rgba(255, 255, 255, 1);
+        }
+        .up { grid-area: up; }
+        .down { grid-area: down; }
+        .left { grid-area: left; }
+        .right { grid-area: right; }
+
+        /* Sound Elements (hidden) */
+        audio {
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake {
+            animation: shake 0.5s;
+            animation-iteration-count: infinite;
+        }
+
+        /* Particle Effects */
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: yellow;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFade 1s forwards;
+        }
+        @keyframes particleFade {
+            from {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: scale(2) translateY(-50px);
+            }
+        }
+
+        /* Responsive Design Enhancements */
+        @media (max-width: 600px) {
+            #startScreen h1, #gameOverScreen h1, #continueModal h1 {
+                font-size: 2.5em;
+            }
+            #gameOverScreen p {
+                font-size: 1.5em;
+            }
+            #startButton, #restartButton, #continueButton, #restartButton2 {
+                padding: 10px 20px;
+                font-size: 1.2em;
+            }
+            .button {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5em;
+            }
+            #scoreBoard, #powerUpBoard, #levelBoard, #livesBoard {
+                font-size: 1.2em;
+            }
+            #pauseResumeInputControls {
+                gap: 10px;
+            }
+            .pauseButton, .resumeButton, .inputToggleButton {
+                width: 50px;
+                height: 50px;
+                font-size: 1em;
+            }
+            .dpad {
+                width: 100px;
+                height: 100px;
+            }
+            .dpadButton {
+                font-size: 1em;
+            }
+        }
+
+        /* Additional Styles for Jump Button */
+        #jumpButton {
+            position: fixed;
+            bottom: 120px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            font-size: 2em;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s, background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-family: 'Bangers', cursive;
+            color: #333;
+            z-index: 10;
+        }
+        #jumpButton:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+        #jumpButton:active {
+            transform: scale(0.9);
+            background-color: rgba(255, 255, 255, 1);
+        }
+
+        /* Additional Styles for Combo Display */
+        #comboBoard {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5em;
+            color: #ff0;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 10;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="startScreen">
+        <h1>ShotJump 🚀</h1>
+        <button id="startButton">Start Game</button>
+    </div>
+
+    <!-- Player Selection Modal -->
+    <div id="playerSelectModal">
+        <h2>Select Your Pilot</h2>
+        <div id="playerOptions">
+            <span class="playerOption" data-emoji="🚀">🚀</span>
+            <span class="playerOption" data-emoji="🛸">🛸</span>
+            <span class="playerOption" data-emoji="👾">👾</span>
+            <span class="playerOption" data-emoji="🌟">🌟</span>
+            <span class="playerOption" data-emoji="✨">✨</span>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" style="display: none;">
+        <h1>Game Over 💥</h1>
+        <p>Your Score: <span id="finalScore">0</span></p>
+        <button id="restartButton">Restart Game</button>
+    </div>
+
+    <!-- Continue Modal -->
+    <div id="continueModal" style="display: none;">
+        <h1>Continue? 🔄</h1>
+        <button id="continueButton">Yes</button>
+        <button id="restartButton2">No, Restart</button>
+    </div>
+
+    <!-- In-Game HUD -->
+    <div id="scoreBoard">Score: 0</div>
+    <div id="powerUpBoard"></div>
+    <div id="levelBoard">Level: 1</div>
+    <div id="livesBoard">Lives: ❤️❤️❤️</div>
+    <div id="comboBoard">Combo x2!</div>
+
+    <!-- Pause, Resume, and Input Mode Toggle Controls -->
+    <div id="pauseResumeInputControls">
+        <button id="pauseButton" class="pauseButton">✋ Pause</button>
+        <button id="resumeButton" class="resumeButton" style="display: none;">🤚 Resume</button>
+        <button id="inputToggleButton" class="inputToggleButton">🔄 Switch Input</button>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button id="shootButton" class="button">🔫</button>
+    </div>
+
+    <!-- Directional Pad -->
+    <div class="dpad">
+        <button class="dpadButton up">⬆️</button>
+        <button class="dpadButton left">⬅️</button>
+        <button class="dpadButton right">➡️</button>
+        <button class="dpadButton down">⬇️</button>
+    </div>
+
+    <!-- Jump Button -->
+    <button id="jumpButton">⬆️</button>
+
+    <!-- Sound Effects -->
+    <audio id="jumpSound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+    <audio id="shootSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+    <audio id="hitSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+    <audio id="gameOverSound" src="https://www.soundjay.com/misc/sounds/fail-trombone-01.mp3"></audio>
+    <audio id="powerUpSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+
+    <script>
+        // Get Canvas and Context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Initialize Player Variable
+        let player;
+
+        // Resize Canvas to Fullscreen
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Adjust player position if necessary
+            if (player) {
+                player.x = Math.min(player.x, canvas.width - player.width);
+                player.y = Math.min(player.y, canvas.height - player.height - 50); // Adjust for ground
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // Initial call
+
+        // Game Variables
+        // Removed gravity to allow free movement
+        let score = 0;
+        let gameOver = false;
+        let powerUpActive = false;
+        let powerUpDuration = 0; // In frames
+        let currentLevel = 1;
+        const maxLevels = 5;
+        let levelTimer = 0;
+        const levelDuration = 6000; // Frames per level (e.g., 100 seconds at 60 FPS)
+        let isPaused = false;
+        let animationId;
+        let lives = 3;
+        let comboCount = 0;
+        let maxCombo = 5;
+        let comboTimer = 0;
+        const comboDuration = 180; // Frames (3 seconds)
+
+        // Input Mode: 'mobile' or 'desktop'
+        let inputMode = 'mobile';
+
+        // Load Sounds
+        const jumpSound = document.getElementById('jumpSound');
+        const shootSound = document.getElementById('shootSound');
+        const hitSound = document.getElementById('hitSound');
+        const gameOverSound = document.getElementById('gameOverSound');
+        const powerUpSound = document.getElementById('powerUpSound');
+
+        // Player Class
+        class Player {
+            constructor(emoji) {
+                this.width = 60;
+                this.height = 60;
+                this.x = 100;
+                this.y = canvas.height - this.height - 100;
+                this.dy = 0;
+                this.dx = 0;
+                this.speed = 5;
+                this.emoji = emoji || '🚀';
+                this.poweredUp = false;
+                this.moving = { left: false, right: false, up: false, down: false };
+            }
+
+            draw() {
+                ctx.font = `${this.height}px Arial`;
+                ctx.fillText(this.emoji, this.x, this.y + this.height);
+            }
+
+            update() {
+                // Update position based on movement flags
+                if (this.moving.left) {
+                    this.x -= this.speed;
+                }
+                if (this.moving.right) {
+                    this.x += this.speed;
+                }
+                if (this.moving.up) {
+                    this.y -= this.speed;
+                }
+                if (this.moving.down) {
+                    this.y += this.speed;
+                }
+
+                // Boundary Collision
+                if (this.x < 0) {
+                    this.x = 0;
+                }
+                if (this.x + this.width > canvas.width) {
+                    this.x = canvas.width - this.width;
+                }
+                if (this.y < 0) {
+                    this.y = 0;
+                }
+                if (this.y + this.height > canvas.height - 50) { // Adjust for ground
+                    this.y = canvas.height - this.height - 50;
+                }
+            }
+
+            move(direction) {
+                switch(direction) {
+                    case 'left':
+                        this.moving.left = true;
+                        break;
+                    case 'right':
+                        this.moving.right = true;
+                        break;
+                    case 'up':
+                        this.moving.up = true;
+                        break;
+                    case 'down':
+                        this.moving.down = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            stop(direction) {
+                switch(direction) {
+                    case 'left':
+                        this.moving.left = false;
+                        break;
+                    case 'right':
+                        this.moving.right = false;
+                        break;
+                    case 'up':
+                        this.moving.up = false;
+                        break;
+                    case 'down':
+                        this.moving.down = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        // Bullet Class
+        class Bullet {
+            constructor(x, y, poweredUp = false) {
+                this.x = x;
+                this.y = y;
+                this.radius = 10;
+                this.speed = 15;
+                this.color = poweredUp ? '#00e6e6' : '#ffffff';
+                this.poweredUp = poweredUp;
+                this.emoji = '💥';
+            }
+
+            draw() {
+                ctx.font = `${this.radius * 2}px Arial`;
+                ctx.fillText(this.emoji, this.x, this.y + this.radius);
+            }
+
+            update() {
+                this.x += this.speed;
+            }
+        }
+
+        // Enemy Class
+        class Enemy {
+            constructor(level) {
+                this.width = 50;
+                this.height = 50;
+                this.x = canvas.width + this.width;
+                this.y = Math.random() * (canvas.height - 150) + 50;
+                this.speed = 6 + Math.random() * 3 + (level - 1) * 1.5; // Increase speed with level
+                this.type = Math.floor(Math.random() * 25) + 1; // 25 different enemies
+                this.emoji = this.getEmoji();
+                this.markedForDeletion = false;
+                this.health = 1;
+                this.isPowerUp = false; // Differentiates enemy from power-up
+            }
+
+            getEmoji() {
+                // Assign different emojis based on type
+                const emojis = [
+                    '👾','👻','🤖','👹','👺','💀','☠️','👽','🛸','🚀',
+                    '🧟','🦇','🕷️','🦂','🐍','🐉','🦄','🦉','🦇','🐲',
+                    '🐺','🦑','🦕','🦖','🐢'
+                ];
+                return emojis[this.type - 1] || '👾';
+            }
+
+            draw() {
+                ctx.font = `${this.height}px Arial`;
+                ctx.fillText(this.emoji, this.x, this.y + this.height);
+            }
+
+            update() {
+                this.x -= this.speed;
+
+                // Boundary Collision
+                if (this.x + this.width < 0) {
+                    this.markedForDeletion = true;
+                }
+            }
+        }
+
+        // Boss Class
+        class Boss {
+            constructor(level) {
+                this.width = 100;
+                this.height = 100;
+                this.x = canvas.width + this.width;
+                this.y = canvas.height / 2 - this.height / 2;
+                this.speed = 3 + level * 0.5;
+                this.type = level; // Each level has its own boss
+                this.emoji = this.getEmoji();
+                this.markedForDeletion = false;
+                this.health = 20; // More health for bosses
+            }
+
+            getEmoji() {
+                const bossEmojis = ['👹', '👺', '💀', '👾', '🤖'];
+                return bossEmojis[this.type - 1] || '👾';
+            }
+
+            draw() {
+                ctx.font = `${this.height}px Arial`;
+                ctx.fillText(this.emoji, this.x, this.y + this.height);
+                // Draw health bar
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(this.x, this.y - 20, this.width, 10);
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(this.x, this.y - 20, (this.health / 20) * this.width, 10);
+            }
+
+            update() {
+                this.x -= this.speed;
+                // Boss movement pattern: slow oscillation
+                this.y += Math.sin(this.x / 100) * 1.5;
+
+                // Boundary Collision
+                if (this.x + this.width < 0) {
+                    this.markedForDeletion = true;
+                }
+            }
+        }
+
+        // Power-Up Class
+        class PowerUp {
+            constructor() {
+                this.width = 40;
+                this.height = 40;
+                this.x = canvas.width + this.width;
+                this.y = Math.random() * (canvas.height - 150) + 50;
+                this.speed = 5;
+                this.type = this.getRandomType();
+                this.emoji = this.getEmoji();
+                this.markedForDeletion = false;
+                this.isPowerUp = true; // Differentiates power-up from enemy
+            }
+
+            getRandomType() {
+                const types = [
+                    'doubleShot', 'shield', 'extraLife', 'speedBoost', 'tripleShot',
+                    'invincibility', 'magnet', 'healthRegen', 'rapidFire', 'laser',
+                    'timeSlow', 'doublePoints'
+                ];
+                return types[Math.floor(Math.random() * types.length)];
+            }
+
+            getEmoji() {
+                const emojiMap = {
+                    'doubleShot': '💥',
+                    'shield': '🛡️',
+                    'extraLife': '❤️',
+                    'speedBoost': '⚡',
+                    'tripleShot': '🔫🔫🔫',
+                    'invincibility': '🛡️🚫',
+                    'magnet': '🧲',
+                    'healthRegen': '🌿',
+                    'rapidFire': '🔥',
+                    'laser': '🔴',
+                    'timeSlow': '⏳',
+                    'doublePoints': '⭐'
+                };
+                return emojiMap[this.type] || '💥';
+            }
+
+            draw() {
+                ctx.save();
+                ctx.strokeStyle = '#FFD700'; // Gold border for power-ups
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.font = `${this.height}px Arial`;
+                ctx.fillText(this.emoji, this.x, this.y + this.height);
+            }
+
+            update() {
+                this.x -= this.speed;
+
+                // Boundary Collision
+                if (this.x + this.width < 0) {
+                    this.markedForDeletion = true;
+                }
+            }
+        }
+
+        // Initialize Player Variable
+        let selectedPlayerEmoji = '🚀'; // Default emoji
+        player = new Player(selectedPlayerEmoji);
+
+        // Initialize Arrays
+        const bullets = [];
+        const enemies = [];
+        const powerUps = [];
+        const bosses = [];
+
+        // Track Keys Pressed
+        const keys = {
+            ArrowLeft: false,
+            ArrowRight: false,
+            ArrowUp: false,
+            ArrowDown: false,
+            KeyZ: false,
+            Space: false
+        };
+
+        // Player Selection Modal Logic
+        const playerSelectModal = document.getElementById('playerSelectModal');
+        const playerOptions = document.querySelectorAll('.playerOption');
+        playerOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                selectedPlayerEmoji = option.getAttribute('data-emoji');
+                player.emoji = selectedPlayerEmoji;
+                playerSelectModal.style.display = 'none';
+                gameLoop();
+            });
+        });
+
+        // Show Player Selection Modal after Start Button Click
+        document.getElementById('startButton').addEventListener('click', () => {
+            document.getElementById('startScreen').style.display = 'none';
+            playerSelectModal.style.display = 'flex';
+        });
+
+        // Restart Game
+        document.getElementById('restartButton').addEventListener('click', () => {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            resetGame();
+            gameLoop();
+        });
+        document.getElementById('restartButton2').addEventListener('click', () => {
+            document.getElementById('continueModal').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        });
+
+        // Continue Game
+        document.getElementById('continueButton').addEventListener('click', () => {
+            document.getElementById('continueModal').style.display = 'none';
+            gameLoop();
+        });
+
+        // Controls
+        document.getElementById('shootButton').addEventListener('touchstart', shoot);
+        document.getElementById('shootButton').addEventListener('mousedown', shoot);
+
+        // Jump Button Controls (now repurposed as Down Movement)
+        document.getElementById('jumpButton').addEventListener('touchstart', () => {
+            player.move('up');
+        });
+        document.getElementById('jumpButton').addEventListener('mousedown', () => {
+            player.move('up');
+        });
+        document.getElementById('jumpButton').addEventListener('touchend', () => {
+            player.stop('up');
+        });
+        document.getElementById('jumpButton').addEventListener('mouseup', () => {
+            player.stop('up');
+        });
+
+        // Directional Pad Controls
+        const dpadButtons = document.querySelectorAll('.dpadButton');
+        dpadButtons.forEach(button => {
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const direction = button.classList[1];
+                player.move(direction);
+            });
+            button.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const direction = button.classList[1];
+                player.move(direction);
+            });
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                const direction = button.classList[1];
+                player.stop(direction);
+            });
+            button.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                const direction = button.classList[1];
+                player.stop(direction);
+            });
+            button.addEventListener('mouseleave', (e) => {
+                e.preventDefault();
+                const direction = button.classList[1];
+                player.stop(direction);
+            });
+        });
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (inputMode === 'desktop') { // Only handle keyboard inputs in desktop mode
+                if (e.code in keys) {
+                    keys[e.code] = true;
+                    // Prevent default behavior for arrow keys and space to avoid scrolling
+                    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) {
+                        e.preventDefault();
+                    }
+                }
+                if (e.code === 'Space') {
+                    player.move('down');
+                }
+                if (e.code === 'KeyZ') {
+                    shoot();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (inputMode === 'desktop') { // Only handle keyboard inputs in desktop mode
+                if (e.code in keys) {
+                    keys[e.code] = false;
+                }
+                if (e.code === 'Space') {
+                    player.stop('down');
+                }
+            }
+        });
+
+        // Shoot Function
+        function shoot() {
+            const poweredUp = powerUpActive && (player.emoji.includes('💥') || player.emoji.includes('🔫🔫🔫'));
+            // Triple Shot Power-Up
+            if (poweredUp && player.emoji.includes('🔫🔫🔫')) {
+                bullets.push(new Bullet(player.x + player.width, player.y + player.height / 2 - 10, true));
+                bullets.push(new Bullet(player.x + player.width, player.y + player.height / 2, true));
+                bullets.push(new Bullet(player.x + player.width, player.y + player.height / 2 + 10, true));
+            } else if (poweredUp && player.emoji.includes('💥')) {
+                bullets.push(new Bullet(player.x + player.width, player.y + player.height / 2 - 5, true));
+                bullets.push(new Bullet(player.x + player.width, player.y + player.height / 2 + 5, true));
+            } else {
+                bullets.push(new Bullet(player.x + player.width, player.y + player.height / 2));
+            }
+            shootSound.currentTime = 0;
+            shootSound.play();
+        }
+
+        // Enemy Spawner
+        let enemyTimer = 0;
+        let enemyInterval = 90; // Frames between enemy spawns
+
+        // Power-Up Spawner
+        let powerUpSpawnTimer = 0;
+        let powerUpInterval = 600; // Frames between power-up spawns
+
+        // Collision Detection
+        function detectCollision(obj1, obj2) {
+            // Simple AABB Collision Detection
+            return (
+                obj1.x < obj2.x + obj2.width &&
+                obj1.x + (obj1.radius || obj1.width) > obj2.x &&
+                obj1.y < obj2.y + obj2.height &&
+                obj1.y + (obj1.radius || obj1.height) > obj2.y
+            );
+        }
+
+        // Detect Collision with Player
+        function detectCollisionPlayer(obj) {
+            return (
+                player.x < obj.x + obj.width &&
+                player.x + player.width > obj.x &&
+                player.y < obj.y + obj.height &&
+                player.y + player.height > obj.y
+            );
+        }
+
+        // Update Score
+        function updateScore() {
+            document.getElementById('scoreBoard').innerText = `Score: ${score}`;
+        }
+
+        // Update Power-Up Display
+        function updatePowerUp() {
+            const powerUpBoard = document.getElementById('powerUpBoard');
+            if (powerUpActive) {
+                const seconds = Math.ceil(powerUpDuration / 60);
+                powerUpBoard.innerText = `Power-Up: Active (${seconds}s)`;
+            } else {
+                powerUpBoard.innerText = '';
+            }
+        }
+
+        // Update Level Display
+        function updateLevel() {
+            const levelBoard = document.getElementById('levelBoard');
+            levelBoard.innerText = `Level: ${currentLevel}`;
+        }
+
+        // Update Lives Display
+        function updateLives() {
+            const livesBoard = document.getElementById('livesBoard');
+            let hearts = '';
+            for (let i = 0; i < lives; i++) {
+                hearts += '❤️';
+            }
+            livesBoard.innerText = `Lives: ${hearts}`;
+        }
+
+        // Update Combo Display
+        function updateCombo() {
+            const comboBoard = document.getElementById('comboBoard');
+            if (comboCount > 1) {
+                comboBoard.innerText = `Combo x${comboCount}!`;
+                comboBoard.style.display = 'block';
+            } else {
+                comboBoard.style.display = 'none';
+            }
+        }
+
+        // Update Lives Display Initially
+        updateLives();
+
+        // Activate Power-Up
+        function activatePowerUp(type) {
+            powerUpActive = true;
+            powerUpDuration = 300; // 5 seconds at 60 FPS
+            powerUpSound.currentTime = 0;
+            powerUpSound.play();
+
+            // Apply Power-Up Effects
+            switch(type) {
+                case 'doubleShot':
+                    player.emoji = '💥' + selectedPlayerEmoji;
+                    break;
+                case 'shield':
+                    player.emoji = '🛡️' + selectedPlayerEmoji;
+                    break;
+                case 'extraLife':
+                    lives += 1;
+                    updateLives();
+                    break;
+                case 'speedBoost':
+                    player.speed += 3;
+                    break;
+                case 'tripleShot':
+                    player.emoji = '🔫🔫🔫' + selectedPlayerEmoji;
+                    break;
+                case 'invincibility':
+                    player.emoji = '🛡️🚫' + selectedPlayerEmoji;
+                    break;
+                case 'magnet':
+                    // Future implementation: attract power-ups
+                    break;
+                case 'healthRegen':
+                    // Future implementation: gradually restore lives
+                    break;
+                case 'rapidFire':
+                    // Future implementation: decrease shoot cooldown
+                    break;
+                case 'laser':
+                    // Future implementation: continuous beam
+                    break;
+                case 'timeSlow':
+                    // Future implementation: slow down enemies
+                    break;
+                case 'doublePoints':
+                    // Future implementation: increase score per enemy
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Deactivate Power-Up
+        function deactivatePowerUp() {
+            powerUpActive = false;
+            powerUpDuration = 0;
+            player.emoji = selectedPlayerEmoji;
+            player.speed = 5; // Reset speed if it was boosted
+        }
+
+        // Pause and Resume Functionality
+        const pauseButton = document.getElementById('pauseButton');
+        const resumeButton = document.getElementById('resumeButton');
+        const inputToggleButton = document.getElementById('inputToggleButton');
+
+        pauseButton.addEventListener('click', () => {
+            if (!isPaused) {
+                isPaused = true;
+                cancelAnimationFrame(animationId);
+                pauseButton.style.display = 'none';
+                resumeButton.style.display = 'flex';
+            }
+        });
+
+        resumeButton.addEventListener('click', () => {
+            if (isPaused) {
+                isPaused = false;
+                gameLoop();
+                pauseButton.style.display = 'flex';
+                resumeButton.style.display = 'none';
+            }
+        });
+
+        // Input Mode Toggle Functionality
+        inputToggleButton.addEventListener('click', () => {
+            if (inputMode === 'mobile') {
+                inputMode = 'desktop';
+                inputToggleButton.innerText = '🕹️ Desktop';
+                // Hide mobile controls
+                document.querySelector('.dpad').style.display = 'none';
+                document.getElementById('shootButton').style.display = 'none';
+                document.getElementById('jumpButton').style.display = 'none';
+                // Show desktop controls if any (not present currently)
+            } else {
+                inputMode = 'mobile';
+                inputToggleButton.innerText = '🔄 Mobile';
+                // Show mobile controls
+                document.querySelector('.dpad').style.display = 'grid';
+                document.getElementById('shootButton').style.display = 'flex';
+                document.getElementById('jumpButton').style.display = 'flex';
+                // Hide desktop controls if any
+            }
+        });
+
+        // Level Management
+        function checkLevelProgress() {
+            levelTimer++;
+            if (levelTimer > levelDuration) {
+                currentLevel++;
+                levelTimer = 0;
+                if (currentLevel > maxLevels) {
+                    currentLevel = 1; // Cycle back to level 1
+                }
+                // Change background based on level
+                changeBackground(currentLevel);
+                // Reset enemy interval to default or adjust
+                enemyInterval = 90 - (currentLevel - 1) * 10;
+                if (enemyInterval < 30) enemyInterval = 30; // Minimum interval
+                // Spawn a boss at the end of each level
+                spawnBoss(currentLevel);
+                updateLevel();
+            }
+        }
+
+        // Change Background Based on Level
+        function changeBackground(level) {
+            const backgrounds = [
+                'linear-gradient(to top, #1e3c72, #2a5298)', // Level 1
+                'linear-gradient(to top, #232526, #414345)', // Level 2
+                'linear-gradient(to top, #000428, #004e92)', // Level 3
+                'linear-gradient(to top, #200122, #6f0000)', // Level 4
+                'linear-gradient(to top, #141E30, #243B55)'  // Level 5
+            ];
+            document.body.style.background = backgrounds[level - 1];
+        }
+
+        // Spawn Boss
+        function spawnBoss(level) {
+            const boss = new Boss(level);
+            bosses.push(boss);
+        }
+
+        // Create Particle Effect
+        function createParticle(x, y, color) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.background = color;
+            document.body.appendChild(particle);
+            setTimeout(() => {
+                particle.remove();
+            }, 1000);
+        }
+
+        // Main Game Loop
+        function gameLoop() {
+            if (gameOver || isPaused) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Ground
+            ctx.fillStyle = '#2e8b57';
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+
+            // Update and Draw Player
+            handlePlayerMovement();
+            player.update();
+            player.draw();
+
+            // Update and Draw Bullets
+            bullets.forEach((bullet, index) => {
+                bullet.update();
+                bullet.draw();
+
+                // Remove bullets off-screen
+                if (bullet.x - bullet.radius > canvas.width) {
+                    bullets.splice(index, 1);
+                }
+            });
+
+            // Spawn Enemies
+            enemyTimer++;
+            if (enemyTimer > enemyInterval) {
+                enemies.push(new Enemy(currentLevel));
+                enemyTimer = 0;
+
+                // Increase difficulty over time
+                if (enemyInterval > 30) {
+                    enemyInterval -= 1;
+                }
+            }
+
+            // Spawn Power-Ups
+            powerUpSpawnTimer++;
+            if (powerUpSpawnTimer > powerUpInterval) {
+                powerUps.push(new PowerUp());
+                powerUpSpawnTimer = 0;
+            }
+
+            // Update and Draw Power-Ups
+            powerUps.forEach((powerUp, powerUpIndex) => {
+                powerUp.update();
+                powerUp.draw();
+
+                // Collision with Player
+                if (detectCollisionPlayer(powerUp)) {
+                    activatePowerUp(powerUp.type);
+                    createParticle(powerUp.x, powerUp.y, '#FFD700'); // Gold color for power-up collection
+                    powerUpSound.currentTime = 0;
+                    powerUpSound.play();
+                    powerUps.splice(powerUpIndex, 1);
+                }
+
+                // Remove power-ups off-screen
+                if (powerUp.markedForDeletion) {
+                    powerUps.splice(powerUpIndex, 1);
+                }
+            });
+
+            // Update and Draw Enemies
+            enemies.forEach((enemy, enemyIndex) => {
+                enemy.update();
+                enemy.draw();
+
+                // Collision with Player
+                if (detectCollisionPlayer(enemy)) {
+                    if (powerUpActive && player.emoji.includes('🛡️')) {
+                        // If shield is active, destroy enemy instead of taking damage
+                        enemies.splice(enemyIndex, 1);
+                        hitSound.currentTime = 0;
+                        hitSound.play();
+                        score += 5; // Award some points for shielded enemy
+                        createParticle(enemy.x, enemy.y, '#FF6347'); // Tomato color for enemy destruction
+                        updateScore();
+                        incrementCombo();
+                    } else {
+                        // Lose a life
+                        lives -= 1;
+                        updateLives();
+                        hitSound.currentTime = 0;
+                        hitSound.play();
+                        createParticle(enemy.x, enemy.y, '#FF4500'); // OrangeRed color for damage
+                        enemies.splice(enemyIndex, 1);
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                            // Optionally, show continue modal
+                            // document.getElementById('continueModal').style.display = 'flex';
+                        }
+                    }
+                }
+
+                // Collision with Bullets
+                bullets.forEach((bullet, bulletIndex) => {
+                    if (detectCollision(bullet, enemy)) {
+                        enemy.health--;
+                        bullets.splice(bulletIndex, 1);
+                        createParticle(enemy.x, enemy.y, '#00FFFF'); // Aqua color for hit
+                        if (enemy.health <= 0) {
+                            enemies.splice(enemyIndex, 1);
+                            score += 10;
+                            hitSound.currentTime = 0;
+                            hitSound.play();
+                            updateScore();
+                            incrementCombo();
+                        }
+                    }
+                });
+
+                // Remove enemies marked for deletion
+                if (enemy.markedForDeletion) {
+                    enemies.splice(enemyIndex, 1);
+                }
+            });
+
+            // Update and Draw Bosses
+            bosses.forEach((boss, bossIndex) => {
+                boss.update();
+                boss.draw();
+
+                // Collision with Player
+                if (detectCollisionPlayer(boss)) {
+                    if (powerUpActive && player.emoji.includes('🛡️')) {
+                        // If shield is active, destroy boss instead of taking damage
+                        bosses.splice(bossIndex, 1);
+                        hitSound.currentTime = 0;
+                        hitSound.play();
+                        score += 50; // Award more points for boss destruction
+                        createParticle(boss.x, boss.y, '#FFD700'); // Gold color for boss destruction
+                        updateScore();
+                        incrementCombo();
+                    } else {
+                        // Lose a life
+                        lives -= 1;
+                        updateLives();
+                        hitSound.currentTime = 0;
+                        hitSound.play();
+                        createParticle(boss.x, boss.y, '#FF4500'); // OrangeRed color for damage
+                        bosses.splice(bossIndex, 1);
+                        if (lives <= 0) {
+                            endGame();
+                        }
+                    }
+                }
+
+                // Collision with Bullets
+                bullets.forEach((bullet, bulletIndex) => {
+                    if (detectCollision(bullet, boss)) {
+                        boss.health--;
+                        bullets.splice(bulletIndex, 1);
+                        createParticle(boss.x, boss.y, '#00FFFF'); // Aqua color for hit
+                        if (boss.health <= 0) {
+                            bosses.splice(bossIndex, 1);
+                            score += 50;
+                            hitSound.currentTime = 0;
+                            hitSound.play();
+                            updateScore();
+                            incrementCombo();
+                        }
+                    }
+                });
+
+                // Remove bosses marked for deletion
+                if (boss.markedForDeletion) {
+                    bosses.splice(bossIndex, 1);
+                }
+            });
+
+            // Update Power-Up Timer
+            if (powerUpActive) {
+                powerUpDuration--;
+                if (powerUpDuration <= 0) {
+                    deactivatePowerUp();
+                }
+            }
+
+            // Update Power-Up Display
+            updatePowerUp();
+
+            // Update Level Display
+            updateLevel();
+
+            // Check Level Progress
+            checkLevelProgress();
+
+            // Handle Combo Timer
+            if (comboCount > 1) {
+                comboTimer++;
+                if (comboTimer > comboDuration) {
+                    comboCount = 0;
+                    comboTimer = 0;
+                    updateCombo();
+                }
+            }
+
+            // Continue the loop
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // Start Game
+        // Already handled by showing the player selection modal after clicking the start button
+
+        // Restart Game
+        // Already handled by clicking the restart button
+
+        // Continue Game
+        // Already handled by clicking the continue button
+
+        // Reset Game
+        function resetGame() {
+            player.x = 100;
+            player.y = canvas.height - player.height - 100;
+            player.dy = 0;
+            player.jumping = false;
+            player.dx = 0;
+            player.stop('left');
+            player.stop('right');
+            player.stop('up');
+            player.stop('down');
+            bullets.length = 0;
+            enemies.length = 0;
+            powerUps.length = 0;
+            bosses.length = 0;
+            score = 0;
+            powerUpActive = false;
+            powerUpDuration = 0;
+            currentLevel = 1;
+            levelTimer = 0;
+            enemyInterval = 90;
+            powerUpSpawnTimer = 0;
+            powerUpInterval = 600;
+            lives = 3;
+            comboCount = 0;
+            comboTimer = 0;
+            updateScore();
+            updatePowerUp();
+            updateLevel();
+            updateLives();
+            updateCombo();
+            changeBackground(currentLevel);
+        }
+
+        // End Game
+        function endGame() {
+            gameOver = true;
+            gameOverSound.play();
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+
+        // Change Background Initially
+        changeBackground(currentLevel);
+
+        // Initial Score and Level Update
+        updateScore();
+        updateLevel();
+
+        // Lives Management
+        function updateLives() {
+            const livesBoard = document.getElementById('livesBoard');
+            let hearts = '';
+            for (let i = 0; i < lives; i++) {
+                hearts += '❤️';
+            }
+            livesBoard.innerText = `Lives: ${hearts}`;
+        }
+
+        // Combo Management
+        function incrementCombo() {
+            comboCount++;
+            if (comboCount >= 2 && comboCount <= maxCombo) {
+                updateCombo();
+            } else if (comboCount > maxCombo) {
+                comboCount = maxCombo;
+                updateCombo();
+            }
+        }
+
+        // Update Combo Display
+        function updateCombo() {
+            const comboBoard = document.getElementById('comboBoard');
+            if (comboCount > 1) {
+                comboBoard.innerText = `Combo x${comboCount}!`;
+                comboBoard.style.display = 'block';
+            } else {
+                comboBoard.style.display = 'none';
+            }
+        }
+
+        // Handle Player Movement Based on Keys Pressed
+        function handlePlayerMovement() {
+            if (inputMode === 'desktop') { // Only handle keyboard inputs in desktop mode
+                if (keys.ArrowLeft) {
+                    player.move('left');
+                }
+                if (keys.ArrowRight) {
+                    player.move('right');
+                }
+                if (keys.ArrowUp) {
+                    player.move('up');
+                }
+                if (keys.ArrowDown) {
+                    player.move('down');
+                }
+            }
+            // Mobile controls are handled via touch/mouse events
+        }
+
+        // Detect Collision with Player
+        function detectCollisionPlayer(obj) {
+            return (
+                player.x < obj.x + obj.width &&
+                player.x + player.width > obj.x &&
+                player.y < obj.y + obj.height &&
+                player.y + player.height > obj.y
+            );
+        }
+
+        // Particle Effect Optimized Using Canvas
+        // Removed DOM-based particles for performance optimization
+
+        // Add Event Listeners for Player Movement Buttons to Stop Movement on Release
+        const movementButtons = document.querySelectorAll('.dpadButton');
+        movementButtons.forEach(button => {
+            button.addEventListener('touchend', () => player.stop(button.classList[1]));
+            button.addEventListener('mouseup', () => player.stop(button.classList[1]));
+            button.addEventListener('mouseleave', () => player.stop(button.classList[1]));
+        });
+
+        // Add Event Listener for Pause/Resume Buttons
+        const pauseButtonElem = document.getElementById('pauseButton');
+        const resumeButtonElem = document.getElementById('resumeButton');
+        pauseButtonElem.addEventListener('click', () => {
+            if (!isPaused) {
+                isPaused = true;
+                cancelAnimationFrame(animationId);
+                pauseButtonElem.style.display = 'none';
+                resumeButtonElem.style.display = 'flex';
+            }
+        });
+        resumeButtonElem.addEventListener('click', () => {
+            if (isPaused) {
+                isPaused = false;
+                gameLoop();
+                pauseButtonElem.style.display = 'flex';
+                resumeButtonElem.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
